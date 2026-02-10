@@ -2,7 +2,7 @@ import importlib
 import logging
 import sys
 from pathlib import Path
-from typing import Union
+from typing import Union, List, Tuple
 
 import pkg_resources
 
@@ -29,7 +29,7 @@ def _is_package_available(package_name: str, skippable: bool = False):
                 raise e
 
 
-def _is_packages_available(packages: Union[list[str], list[tuple[str, bool]]]):
+def _is_packages_available(packages: Union[List[str], List[Tuple[str, bool]]]):
     if isinstance(packages[0], str):
         return all([_is_package_available(package) for package in packages])
     elif isinstance(packages[0], tuple):

@@ -4,20 +4,24 @@
 from lmflow.pipeline.evaluator import Evaluator
 from lmflow.pipeline.finetuner import Finetuner
 from lmflow.pipeline.inferencer import Inferencer
-from lmflow.pipeline.sglang_inferencer import SGLangInferencer
 from lmflow.pipeline.rm_inferencer import RewardModelInferencer
 from lmflow.pipeline.rm_tuner import RewardModelTuner
-from lmflow.utils.versioning import is_package_version_at_least, is_ray_available, is_trl_available, is_vllm_available
+from lmflow.utils.versioning import is_package_version_at_least, is_ray_available, is_sglang_available, is_trl_available, is_vllm_available
 
 PIPELINE_MAPPING = {
     "evaluator": Evaluator,
     "finetuner": Finetuner,
     "inferencer": Inferencer,
-    "sglang_inferencer": SGLangInferencer,
     "rm_inferencer": RewardModelInferencer,
     "rm_tuner": RewardModelTuner,
 }
 PIPELINE_NEEDS_EXTRAS = []
+
+if is_sglang_available():
+    from lmflow.pipeline.sglang_inferencer import SGLangInferencer
+    PIPELINE_MAPPING["sglang_inferencer"] = SGLangInferencer
+else:
+    PIPELINE_NEEDS_EXTRAS.append("sglang_inferencer")
 
 if not is_package_version_at_least("transformers", "4.35.0"):
     from lmflow.pipeline.raft_aligner import RaftAligner
