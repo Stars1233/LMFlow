@@ -107,7 +107,7 @@ class HFDecoderModel(DecoderModel, HFModelMixin, Tunable):
         # Preprocessing the datasets.
         # First we tokenize all the texts.
         if dataset.get_backend() != "huggingface":
-            raise NotImplementedError("tokenization of datasets with non-huggingface backend arenot supported yet")
+            raise NotImplementedError("tokenization of datasets with non-huggingface backend are not supported yet")
 
         dataset_type = dataset.get_type()
         model_args = self.model_args
@@ -115,6 +115,12 @@ class HFDecoderModel(DecoderModel, HFModelMixin, Tunable):
         hf_raw_datasets = dataset.get_backend_dataset()
         column_names = list(hf_raw_datasets.features)
         data_args = raw_datasets.get_data_args()
+
+        if data_args.block_size is None:
+            data_args.block_size = self.tokenizer.model_max_length
+            logger.warning(
+                f"`block_size` is not provided. Using tokenizer.model_max_length={self.tokenizer.model_max_length}."
+            )
 
         # Requires three types of information for tokenizing different datasets
         #   1) Which fields require tokenization, e.g.
@@ -137,15 +143,35 @@ class HFDecoderModel(DecoderModel, HFModelMixin, Tunable):
             add_special_tokens = False
         elif dataset_type == "conversation":
             if data_args.conversation_template:
-                if data_args.conversation_template in PRESET_TEMPLATES.keys():
+                if data_args.conversation_template == "tokenizer":
+                    if getattr(self.tokenizer, "chat_template", None):
+                        conversation_template = self.tokenizer.chat_template
+                    else:
+                        raise NotImplementedError(
+                            "Requested tokenizer chat template, but tokenizer.chat_template is not available."
+                        )
+                elif data_args.conversation_template == "hf_auto":
+                    if getattr(self.tokenizer, "chat_template", None):
+                        conversation_template = self.tokenizer.chat_template
+                    else:
+                        logger.warning(
+                            "Requested `hf_auto`, but tokenizer.chat_template is unavailable. "
+                            "Falling back to LMFlow default template."
+                        )
+                        conversation_template = PRESET_TEMPLATES["empty"]
+                elif data_args.conversation_template in PRESET_TEMPLATES.keys():
                     conversation_template = PRESET_TEMPLATES[data_args.conversation_template]
                 else:
                     raise NotImplementedError(
                         f"Conversation template {data_args.conversation_template} is not supported yet."
                     )
             else:
-                logger.warning("No conversation template provided. Using default template.")
-                conversation_template = PRESET_TEMPLATES["empty"]
+                if getattr(self.tokenizer, "chat_template", None):
+                    logger.warning("No conversation template provided. Using tokenizer.chat_template.")
+                    conversation_template = self.tokenizer.chat_template
+                else:
+                    logger.warning("No conversation template provided. Using default template.")
+                    conversation_template = PRESET_TEMPLATES["empty"]
 
             logger.warning(f"Conversation template: {conversation_template}")
         else:

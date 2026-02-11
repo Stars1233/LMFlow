@@ -569,7 +569,15 @@ class DatasetArguments:
         default=False, metadata={"help": "Whether to train on prompt for conversation datasets such as ShareGPT."}
     )
     conversation_template: Optional[str] = field(
-        default=None, metadata={"help": "The template for conversation datasets."}
+        default=None,
+        metadata={
+            "help": (
+                "The template for conversation datasets. Supports LMFlow preset names "
+                "(e.g. llama3, qwen2_5, deepseek_v3) and special values "
+                "`tokenizer` / `hf_auto` to use tokenizer.chat_template "
+                "(`tokenizer` is strict; `hf_auto` falls back to LMFlow default when unavailable)."
+            )
+        },
     )
     dataset_cache_dir: Optional[str] = field(
         default=None,
