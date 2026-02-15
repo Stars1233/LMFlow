@@ -17,9 +17,11 @@ from transformers import (
     set_seed,
 )
 from transformers.trainer_utils import get_last_checkpoint
-from transformers.utils import (
-    send_example_telemetry,
-)
+
+try:
+    from transformers.utils import send_example_telemetry
+except ImportError:
+    send_example_telemetry = None
 
 from lmflow.args import DatasetArguments, FinetunerArguments, ModelArguments
 from lmflow.datasets.dataset import Dataset
@@ -73,7 +75,8 @@ class Finetuner(BaseTuner):
         # Sending telemetry. Tracking the example usage helps us better
         # allocate resources to maintain them. The information sent is the one
         # passed as arguments along with your Python/PyTorch versions.
-        send_example_telemetry("run_clm", model_args, data_args)
+        if send_example_telemetry is not None:
+            send_example_telemetry("run_clm", model_args, data_args)
 
         # Setup logging
         logging.basicConfig(

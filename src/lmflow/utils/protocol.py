@@ -10,7 +10,7 @@ import logging
 import math
 import pickle
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any, Dict, List, Optional, Set, Union
 
 import numpy as np
 import tensordict
@@ -65,7 +65,7 @@ def union_tensor_dict(tensor_dict1: TensorDict, tensor_dict2: TensorDict) -> Ten
     return tensor_dict1
 
 
-def _array_equal(array1: np.ndarray, array2: np.ndarray, visited: set[int]) -> bool:
+def _array_equal(array1: np.ndarray, array2: np.ndarray, visited: Set[int]) -> bool:
     """
     Recursively compares two NumPy arrays for strict equality, with special
     handling for object-dtype arrays, NaN values, and circular references.
@@ -92,7 +92,7 @@ def _array_equal(array1: np.ndarray, array2: np.ndarray, visited: set[int]) -> b
     return all(_deep_equal(x, y, visited) for x, y in zip(array1.flat, array2.flat, strict=False))
 
 
-def _deep_equal(a: Any, b: Any, visited: set[int]) -> bool:
+def _deep_equal(a: Any, b: Any, visited: Set[int]) -> bool:
     """
     Recursively performs a deep comparison between two Python objects.
     - Handles NaN values correctly (NaN == NaN evaluates to True).
@@ -128,7 +128,7 @@ def _deep_equal(a: Any, b: Any, visited: set[int]) -> bool:
     return result
 
 
-def union_numpy_dict(tensor_dict1: dict[str, np.ndarray], tensor_dict2: dict[str, np.ndarray]) -> dict[str, np.ndarray]:
+def union_numpy_dict(tensor_dict1: Dict[str, np.ndarray], tensor_dict2: Dict[str, np.ndarray]) -> Dict[str, np.ndarray]:
     for key, val in tensor_dict2.items():
         if key in tensor_dict1:
             assert isinstance(tensor_dict2[key], np.ndarray)
@@ -142,7 +142,7 @@ def union_numpy_dict(tensor_dict1: dict[str, np.ndarray], tensor_dict2: dict[str
     return tensor_dict1
 
 
-def list_of_dict_to_dict_of_list(list_of_dict: list[dict]):
+def list_of_dict_to_dict_of_list(list_of_dict: List[dict]):
     if len(list_of_dict) == 0:
         return {}
     keys = list_of_dict[0].keys()
@@ -154,7 +154,7 @@ def list_of_dict_to_dict_of_list(list_of_dict: list[dict]):
     return output
 
 
-def collate_fn(x: list["DataProtoItem"]):
+def collate_fn(x: List["DataProtoItem"]):
     batch = []
     non_tensor_batch = []
     for data in x:
@@ -167,7 +167,7 @@ def collate_fn(x: list["DataProtoItem"]):
     return DataProto(batch=batch, non_tensor_batch=non_tensor_batch)
 
 
-def get_tensordict(tensor_dict: dict[str, torch.Tensor | list], non_tensor_dict: dict = None) -> TensorDict:
+def get_tensordict(tensor_dict: Dict[str, Union[torch.Tensor, list]], non_tensor_dict: dict = None) -> TensorDict:
     """Create a TensorDict from tensors and non-tensor data.
 
     Automatically handles nested structures in lists by converting them to NonTensorStack.
@@ -223,7 +223,7 @@ def get_tensordict(tensor_dict: dict[str, torch.Tensor | list], non_tensor_dict:
             # Convert to NonTensorStack to handle nested structures
             tensor_dict[key] = NonTensorStack.from_list([NonTensorData(item) for item in val])
 
-        assert isinstance(val, torch.Tensor | list)
+        assert isinstance(val, (torch.Tensor, list))
 
         if batch_size is None:
             batch_size = val.size(0) if isinstance(val, torch.Tensor) else len(val)
@@ -300,11 +300,11 @@ class DataProto:
             return self.slice(item.start, item.stop, item.step)
 
         # Case 2: List, numpy array, or torch tensor - use sel_idxs
-        elif isinstance(item, list | np.ndarray | torch.Tensor):
+        elif isinstance(item, (list, np.ndarray, torch.Tensor)):
             return self.select_idxs(item)
 
         # Case 3: Single integer - return DataProtoItem for backward compatibility
-        elif isinstance(item, int | np.integer):
+        elif isinstance(item, (int, np.integer)):
             tensor_data = self.batch[item] if self.batch is not None else None
             non_tensor_data = {key: val[item] for key, val in self.non_tensor_batch.items()}
             return DataProtoItem(batch=tensor_data, non_tensor_batch=non_tensor_data, meta_info=self.meta_info)
@@ -387,7 +387,7 @@ class DataProto:
                 )
 
     @classmethod
-    def from_single_dict(cls, data: dict[str, torch.Tensor | np.ndarray], meta_info=None):
+    def from_single_dict(cls, data: Dict[str, Union[torch.Tensor, np.ndarray]], meta_info=None):
         """Create a DataProto from a dict of tensors and non_tensors"""
         tensors = {}
         non_tensors = {}

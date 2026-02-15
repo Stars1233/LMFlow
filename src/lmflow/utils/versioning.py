@@ -1,10 +1,11 @@
 import importlib
 import logging
 import sys
+from importlib import metadata
 from pathlib import Path
-from typing import Union
+from typing import Union, List, Tuple
 
-import pkg_resources
+from packaging.version import Version, InvalidVersion
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +30,7 @@ def _is_package_available(package_name: str, skippable: bool = False):
                 raise e
 
 
-def _is_packages_available(packages: Union[list[str], list[tuple[str, bool]]]):
+def _is_packages_available(packages: Union[List[str], List[Tuple[str, bool]]]):
     if isinstance(packages[0], str):
         return all([_is_package_available(package) for package in packages])
     elif isinstance(packages[0], tuple):
@@ -40,10 +41,10 @@ def _is_packages_available(packages: Union[list[str], list[tuple[str, bool]]]):
 
 def is_package_version_at_least(package_name, min_version):
     try:
-        package_version = pkg_resources.get_distribution(package_name).version
-        if pkg_resources.parse_version(package_version) < pkg_resources.parse_version(min_version):
+        package_version = metadata.version(package_name)
+        if Version(package_version) < Version(min_version):
             return False
-    except pkg_resources.DistributionNotFound:
+    except (metadata.PackageNotFoundError, InvalidVersion):
         return False
     return True
 

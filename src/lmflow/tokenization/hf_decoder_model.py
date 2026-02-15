@@ -142,9 +142,16 @@ def conversation_tokenize_function(
                 if data_args.train_on_prompt:
                     labels = encoded_conversation["input_ids"]
                 else:
+                    assistant_masks = encoded_conversation.get("assistant_masks", None)
+                    if assistant_masks is None:
+                        raise RuntimeError(
+                            "Tokenizer chat template path requires `assistant_masks` for label masking when "
+                            "`train_on_prompt=False`. Please upgrade transformers/tokenizer support, "
+                            "or use an LMFlow conversation template."
+                        )
                     labels = [
                         encoded_conversation["input_ids"][index] if mask == 1 else -100
-                        for index, mask in enumerate(encoded_conversation["assistant_masks"])
+                        for index, mask in enumerate(assistant_masks)
                     ]
 
                 token_dict["input_ids"][i].extend(encoded_conversation["input_ids"])
