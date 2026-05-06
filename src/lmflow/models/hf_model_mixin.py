@@ -559,18 +559,21 @@ class HFModelMixin(BaseModel):
     ):
         """Deactivate the model and release the resources.
 
-        NOTE: Currently, VLLM doesn't have an official way to do this, and the
-        implementation below cannot release all gpu resources by our observation.
-        Thus this method is just a placeholder for future implementation. See:
-        [Github issue](https://github.com/vllm-project/vllm/issues/1908)
+        NOTE: For vllm (>=0.8), the best-effort release below works for most
+        single-GPU, inference-only use cases. It remains unreliable when
+        ``tensor_parallel_size > 1``, CUDA graphs are enabled, or the same
+        process also holds an HF training model — in those cases use
+        :class:`MemorySafeVLLMInferencer`, which isolates inference in a
+        subprocess. vllm still has no official in-process shutdown API
+        (RFC vllm-project/vllm#24885); ``MemorySafeVLLMInferencer`` is kept
+        for backward compatibility and will be migrated to vllm sleep mode
+        in a follow-up.
         """
         if not self._activated:
             logger.warning("You are trying to deactivate the model for inference, but it is already deactivated.")
             return
 
         if inference_engine == "vllm":
-            # vllm still cannot fully release GPU memory in-process.
-            # See: https://github.com/vllm-project/vllm/issues/1908
             try:
                 from vllm.distributed.parallel_state import destroy_model_parallel
                 destroy_model_parallel()

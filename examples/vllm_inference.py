@@ -37,6 +37,10 @@ def main():
         pipeline_name=pipeline_name, model_args=model_args, data_args=data_args, pipeline_args=pipeline_args
     )
 
+    # `release_gpu=True` does an in-process best-effort cleanup; it is
+    # sufficient for this standalone example. For colocated training+inference
+    # (e.g. iterative DPO) or tensor_parallel_size > 1, prefer
+    # `MemorySafeVLLMInferencer` instead.
     res = inferencer.inference(
         model,
         dataset,
