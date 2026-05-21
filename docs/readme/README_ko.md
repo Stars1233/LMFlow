@@ -65,16 +65,37 @@
 
 ## Quick Start
 ### Setup
-저희의 Repo는 이미 리눅스 (우분투 20.04)에서 완전한 테스트가 이루어졌습니다. 다른 운영 체제 플랫폼 (맥OS, 윈도우)은 아직 완전히 테스트되지 않았으므로 예상치 못한 오류가 발생할 수 있습니다. 먼저 리눅스/윈도우 WSL에서 사용해보거나 Google Colab을 사용하는 것을 권장합니다.
-CUDA 10.3-11.7에 대해서는 `v0.0.5` 및 그 이전 버전을 사용하는 것이 좋습니다. 11.7보다 큰 CUDA의 경우, 더 나은 경험을 위해 우리의 stable 브랜치인 `>= v0.0.6` 을 사용하십시오.
+저희의 Repo는 리눅스 (우분투 20.04)에서 테스트되었습니다. 다른 운영 체제 플랫폼 (macOS, Windows)은 아직 완전히 테스트되지 않았으므로 예상치 못한 오류가 발생할 수 있습니다. 먼저 리눅스 또는 Windows WSL에서 사용해 보시거나 Google Colab을 사용하는 것을 권장합니다.
+
 ```bash
-git clone https://github.com/OptimalScale/LMFlow.git
+git clone -b v1.0.0 https://github.com/OptimalScale/LMFlow.git
 cd LMFlow
 conda create -n lmflow python=3.9 -y
 conda activate lmflow
 conda install mpi4py
-bash install.sh
+pip install -e .
 ```
+
+#### 선택적 의존성 (Optional dependencies)
+
+위의 기본 설치는 전체 / LoRA / LISA 파인튜닝 및 HuggingFace 백엔드 추론에 충분합니다. 다음 기능들은 *extras* 를 통해 활성화됩니다 — 필요한 것만 설치하세요:
+
+| Extra        | 활성화되는 기능                                | 설치 명령어                        |
+| ------------ | ---------------------------------------------- | ---------------------------------- |
+| `vllm`       | vLLM 기반 추론 및 iterative DPO                | `pip install -e ".[vllm]"`         |
+| `sglang`     | SGLang 기반 추론 및 iterative DPO              | `pip install -e ".[sglang]"`       |
+| `trl`        | DPO / iterative DPO 학습                       | `pip install -e ".[trl]"`          |
+| `deepspeed`  | DeepSpeed 통합                                 | `pip install -e ".[deepspeed]"`    |
+| `flash_attn` | Flash Attention 2                              | `pip install -e ".[flash_attn]"`   |
+| `ray`        | 분산 reward model 추론                         | `pip install -e ".[ray]"`          |
+| `multimodal` | 멀티모달 모델                                  | `pip install -e ".[multimodal]"`   |
+| `gradio`     | Gradio 챗봇 UI                                 | `pip install -e ".[gradio]"`       |
+| `flask`      | Flask 배포                                     | `pip install -e ".[flask]"`        |
+
+extras는 조합할 수 있습니다: vLLM 기반 iterative DPO는 `pip install -e ".[vllm,trl]"`, SGLang 버전은 `".[sglang,trl]"`.
+
+> [!IMPORTANT]
+> vLLM과 SGLang은 호환되지 않는 CUDA / PyTorch 버전에 의존하므로 동일한 환경에 설치해서는 안 됩니다. 둘 다 필요한 경우 별도의 conda 환경을 만드세요 (예: `lmflow-vllm`, `lmflow-sglang`).
 
 ### Prepare Dataset
 저희의 [공식 문서(영문)](https://optimalscale.github.io/LMFlow/examples/DATASETS.html) 를 참고해 주세요. 공식 문서는 현재 번역 중이며, 조금만 기다려 주시기 바랍니다.
