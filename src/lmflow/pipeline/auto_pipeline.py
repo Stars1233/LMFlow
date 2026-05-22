@@ -6,7 +6,7 @@ from lmflow.pipeline.finetuner import Finetuner
 from lmflow.pipeline.inferencer import Inferencer
 from lmflow.pipeline.rm_inferencer import RewardModelInferencer
 from lmflow.pipeline.rm_tuner import RewardModelTuner
-from lmflow.utils.versioning import is_package_version_at_least, is_ray_available, is_sglang_available, is_trl_available, is_vllm_available
+from lmflow.utils.versioning import is_package_version_at_least, is_sglang_available, is_trl_available, is_vllm_available
 
 PIPELINE_MAPPING = {
     "evaluator": Evaluator,
@@ -46,7 +46,7 @@ if is_trl_available():
 else:
     PIPELINE_NEEDS_EXTRAS.extend(["dpo_aligner", "dpov2_aligner"])
 
-if is_vllm_available() and is_trl_available() and is_ray_available():
+if is_trl_available() and (is_vllm_available() or is_sglang_available()):
     from lmflow.pipeline.iterative_dpo_aligner import IterativeDPOAligner
 
     PIPELINE_MAPPING["iterative_dpo_aligner"] = IterativeDPOAligner

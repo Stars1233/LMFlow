@@ -60,17 +60,37 @@
 
 ## 快速上手
 ### 安装
-我们的Repo已经在Linux（Ubuntu 20.04）上进行了测试。其他操作系统平台（MacOS、Windows）尚未完全测试，因此可能会遇到一些预期外的错误。建议先在Linux/Windows WSL上尝试使用，或者使用Google Colab来体验。
+我们的 Repo 已经在 Linux（Ubuntu 20.04）上进行了测试。其他操作系统平台（macOS、Windows）尚未完全测试，可能会遇到一些预期外的错误。建议先在 Linux 或 Windows WSL 上尝试使用，或者使用 Google Colab 来体验。
 
-对于CUDA 10.3-11.7，建议使用`v0.0.5`及更早版本。对于大于11.7的CUDA，请使用我们的稳定分支`>= v0.0.6`以获得更好的体验。
 ```bash
-git clone https://github.com/OptimalScale/LMFlow.git
+git clone -b v1.0.0 https://github.com/OptimalScale/LMFlow.git
 cd LMFlow
 conda create -n lmflow python=3.9 -y
 conda activate lmflow
 conda install mpi4py
-bash install.sh
+pip install -e .
 ```
+
+#### 可选依赖
+
+基础安装已足够支持全参数 / LoRA / LISA 微调以及 HuggingFace 后端推理。以下功能通过 extras 按需开启 —— 只装你需要的：
+
+| Extra        | 启用功能                                  | 安装命令                          |
+| ------------ | ----------------------------------------- | --------------------------------- |
+| `vllm`       | vLLM 后端推理与 iterative DPO             | `pip install -e ".[vllm]"`        |
+| `sglang`     | SGLang 后端推理与 iterative DPO           | `pip install -e ".[sglang]"`      |
+| `trl`        | DPO / iterative DPO 训练                  | `pip install -e ".[trl]"`         |
+| `deepspeed`  | DeepSpeed 集成                            | `pip install -e ".[deepspeed]"`   |
+| `flash_attn` | Flash Attention 2                         | `pip install -e ".[flash_attn]"`  |
+| `ray`        | 分布式 reward model 推理                  | `pip install -e ".[ray]"`         |
+| `multimodal` | 多模态模型                                | `pip install -e ".[multimodal]"`  |
+| `gradio`     | Gradio 聊天界面                           | `pip install -e ".[gradio]"`      |
+| `flask`      | Flask 部署                                | `pip install -e ".[flask]"`      |
+
+extras 可以组合使用：`pip install -e ".[vllm,trl]"` 用于 vLLM 后端的 iterative DPO，`".[sglang,trl]"` 则使用 SGLang。
+
+> [!IMPORTANT]
+> vLLM 与 SGLang 依赖互不兼容的 CUDA / PyTorch 版本，不应安装到同一个环境。如果两者都要用，请创建独立的 conda 环境（例如 `lmflow-vllm` 和 `lmflow-sglang`）。
 
 ### 准备数据集
 请参考我们的 [官方文档（英文版）](https://optimalscale.github.io/LMFlow/examples/DATASETS.html)。官方文档正在汉化中，请耐心等待。

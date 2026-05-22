@@ -16,10 +16,12 @@ from lmflow.args import (
 from lmflow.datasets.dataset import Dataset
 from lmflow.models.hf_decoder_model import HFDecoderModel
 from lmflow.models.hf_text_regression_model import HFTextRegressionModel
+from lmflow.pipeline.base_pipeline import BasePipeline
 from lmflow.pipeline.dpov2_aligner import MemorySafeDPOv2Aligner
 from lmflow.pipeline.rm_inferencer import RewardModelInferencer
-from lmflow.pipeline.vllm_inferencer import MemorySafeVLLMInferencer
 from lmflow.utils.common import print_banner
+from lmflow.utils.protocol import DataProto
+from lmflow.utils.versioning import is_sglang_available, is_vllm_available
 
 logger = logging.getLogger(__name__)
 
@@ -121,27 +123,64 @@ class IterativeDPOAligner:
         dataset: Dataset,
         output_dir: str,
     ):
-        result_cache_path = str(Path(output_dir) / "cache" / "target_model_inference_result.json")
-        inferencer = MemorySafeVLLMInferencer(
+        inferencer_args = self._parse_target_model_inference_args(args=self.aligner_args)
+        inferencer = self._build_response_generator(
             model_args=model.model_args,
             data_args=dataset.data_args,
-            inferencer_args=self._parse_target_model_inference_args(
-                args=self.aligner_args,
-                result_cache_path=result_cache_path,
-            ),
+            inferencer_args=inferencer_args,
         )
-        res = inferencer.inference()
-
-        dataset_out = {"type": "text_to_textlist", "instances": res}
+        res = inferencer.inference(model=model, dataset=dataset, release_gpu=True)
+        instances = self._dataproto_to_text_to_textlist_instances(res)
 
         target_model_inference_result_dir = Path(output_dir) / "target_model_inference_result"
         target_model_inference_result_dir.mkdir(parents=True, exist_ok=True)
         json.dump(
-            dataset_out,
+            {"type": "text_to_textlist", "instances": instances},
             open(str(target_model_inference_result_dir / "result.json"), "w", encoding="utf-8"),
             ensure_ascii=False,
             indent=4,
         )
+
+    @staticmethod
+    def _build_response_generator(
+        model_args: ModelArguments,
+        data_args: DatasetArguments,
+        inferencer_args: InferencerArguments,
+    ) -> BasePipeline:
+        engine = inferencer_args.inference_engine
+        if engine == "vllm":
+            if not is_vllm_available():
+                raise ImportError('vllm is not installed. Install via `pip install -e ".[vllm]"`.')
+            from lmflow.pipeline.vllm_inferencer import VLLMInferencer
+
+            return VLLMInferencer(model_args, data_args, inferencer_args)
+        if engine == "sglang":
+            if not is_sglang_available():
+                raise ImportError('sglang is not installed. Install via `pip install -e ".[sglang]"`.')
+            from lmflow.pipeline.sglang_inferencer import SGLangInferencer
+
+            return SGLangInferencer(model_args, data_args, inferencer_args)
+        raise ValueError(
+            f"iterative_dpo_aligner: unsupported inference_engine={engine!r}. Use 'vllm' or 'sglang'."
+        )
+
+    @staticmethod
+    def _dataproto_to_text_to_textlist_instances(res: DataProto) -> list[dict]:
+        # VLLMInferencer flattens n samples by repeat-interleaving inputs (see
+        # HFDecoderModel.prepare_inputs_for_inference); each block of
+        # `actual_n_rollouts` consecutive rows shares the same prompt. Group
+        # them back into one instance per prompt.
+        n_rollouts = res.meta_info["actual_n_rollouts"]
+        inputs_flat = res.non_tensor_batch["inputs"].tolist()
+        outputs_flat = res.non_tensor_batch["outputs"].tolist()
+        if len(inputs_flat) % n_rollouts != 0:
+            raise ValueError(
+                f"Inference result length {len(inputs_flat)} is not a multiple of n_rollouts={n_rollouts}"
+            )
+        return [
+            {"input": inputs_flat[i], "output": outputs_flat[i : i + n_rollouts]}
+            for i in range(0, len(inputs_flat), n_rollouts)
+        ]
 
     def _do_reward_model_inference(
         self,
@@ -191,16 +230,11 @@ class IterativeDPOAligner:
     def _parse_target_model_inference_args(
         self,
         args: IterativeDPOAlignerArguments,
-        result_cache_path: str,
     ) -> InferencerArguments:
-        inferencer_args = self.__filter_args(
+        return self.__filter_args(
             mixed_args=args,
             target_cls=InferencerArguments,
         )
-        inferencer_args.save_results = True
-        inferencer_args.results_path = result_cache_path
-
-        return inferencer_args
 
     def _parse_reward_model_inference_args(
         self,

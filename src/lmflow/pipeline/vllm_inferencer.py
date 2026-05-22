@@ -7,6 +7,7 @@ import os
 os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
 import subprocess
 import sys
+import warnings
 from typing import Optional
 
 from transformers import AutoTokenizer
@@ -121,8 +122,14 @@ class VLLMInferencer(BasePipeline):
 class MemorySafeVLLMInferencer(VLLMInferencer):
     """Run VLLM inference in a subprocess for memory safety.
 
-    This is a workaround since vllm cannot release GPU memory properly
-    in-process. See: https://github.com/vllm-project/vllm/issues/1908
+    .. deprecated::
+        Scheduled for removal in lmflow 1.1.0. Use :class:`VLLMInferencer`
+        with ``release_gpu=True`` for the common single-GPU case, or wait
+        for the sleep-mode-based replacement that will land alongside the
+        vllm>=0.11 pin. This subprocess wrapper was a workaround for vllm's
+        inability to release GPU memory in-process
+        (https://github.com/vllm-project/vllm/issues/1908); the in-process
+        path is now reliable for most use cases.
     """
 
     def __init__(
@@ -131,6 +138,12 @@ class MemorySafeVLLMInferencer(VLLMInferencer):
         data_args: DatasetArguments,
         inferencer_args: InferencerArguments,
     ):
+        warnings.warn(
+            "MemorySafeVLLMInferencer is deprecated and will be removed in lmflow 1.1.0. "
+            "Use VLLMInferencer with release_gpu=True instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         assert inferencer_args.save_inference_results or inferencer_args.save_results, (
             "For MemorySafeVLLMInferencer, `save_inference_results` must be True."
         )

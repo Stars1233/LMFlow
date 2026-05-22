@@ -65,17 +65,37 @@
 
 ## Quick Start
 ### Setup
-हमारे रेपो को Linux (Ubuntu 20.04) पर परीक्षण किया गया है। अन्य ऑपरेटिंग सिस्टम प्लेटफॉर्म (MacOS, Windows) को पूरी तरह से परीक्षण नहीं किया गया है, इसलिए कुछ अपेक्षित त्रुटियों का सामना कर सकता है। Linux/Windows WSL पर प्रयोग करने या Google Colab का उपयोग करके अनुभव करने की सिफारिश की जाती है।
+हमारे रेपो को Linux (Ubuntu 20.04) पर परीक्षण किया गया है। अन्य ऑपरेटिंग सिस्टम प्लेटफॉर्म (macOS, Windows) को पूरी तरह से परीक्षण नहीं किया गया है, इसलिए कुछ अप्रत्याशित त्रुटियों का सामना हो सकता है। पहले Linux या Windows WSL पर प्रयोग करने, या Google Colab का उपयोग करने की सिफारिश की जाती है।
 
-CUDA 10.3-11.7 के लिए, `v0.0.5` या इससे पुराने संस्करणों का उपयोग करने की सिफारिश की जाती है। 11.7 से अधिक CUDA के लिए, बेहतर अनुभव के लिए हमारी स्थिर शाखा `>= v0.0.6` का उपयोग करें।
 ```bash
-git clone https://github.com/OptimalScale/LMFlow.git
+git clone -b v1.0.0 https://github.com/OptimalScale/LMFlow.git
 cd LMFlow
 conda create -n lmflow python=3.9 -y
 conda activate lmflow
 conda install mpi4py
-bash install.sh
+pip install -e .
 ```
+
+#### वैकल्पिक निर्भरताएँ (Optional dependencies)
+
+ऊपर दिया गया बेस इंस्टॉल पूर्ण / LoRA / LISA फ़ाइन-ट्यूनिंग और HuggingFace बैकएंड इंफरेंस के लिए पर्याप्त है। नीचे दी गई सुविधाएँ *extras* के माध्यम से सक्षम होती हैं — केवल वही इंस्टॉल करें जिसकी आपको आवश्यकता है:
+
+| Extra        | क्या सक्षम होता है                              | इंस्टॉल कमांड                       |
+| ------------ | ------------------------------------------------ | ------------------------------------ |
+| `vllm`       | vLLM-आधारित इंफरेंस और iterative DPO             | `pip install -e ".[vllm]"`           |
+| `sglang`     | SGLang-आधारित इंफरेंस और iterative DPO           | `pip install -e ".[sglang]"`         |
+| `trl`        | DPO / iterative DPO ट्रेनिंग                     | `pip install -e ".[trl]"`            |
+| `deepspeed`  | DeepSpeed इंटीग्रेशन                             | `pip install -e ".[deepspeed]"`      |
+| `flash_attn` | Flash Attention 2                                | `pip install -e ".[flash_attn]"`     |
+| `ray`        | डिस्ट्रिब्यूटेड reward model इंफरेंस             | `pip install -e ".[ray]"`            |
+| `multimodal` | मल्टीमॉडल मॉडल                                    | `pip install -e ".[multimodal]"`     |
+| `gradio`     | Gradio चैटबॉट UI                                  | `pip install -e ".[gradio]"`         |
+| `flask`      | Flask डिप्लॉयमेंट                                 | `pip install -e ".[flask]"`          |
+
+Extras को मिलाया जा सकता है: vLLM के साथ iterative DPO के लिए `pip install -e ".[vllm,trl]"`, या SGLang संस्करण के लिए `".[sglang,trl]"`।
+
+> [!IMPORTANT]
+> vLLM और SGLang असंगत CUDA / PyTorch संस्करणों पर निर्भर हैं और इन्हें एक ही environment में इंस्टॉल नहीं करना चाहिए। यदि दोनों चाहिए, तो अलग-अलग conda environments बनाएँ (जैसे `lmflow-vllm` और `lmflow-sglang`)।
 
 ### Prepare Dataset
 आप हमारी [आधिकारिक दस्तावेज़ीकरण (अंग्रेजी में)](https://optimalscale.github.io/LMFlow/examples/DATASETS.html) को देखें। आधिकारिक दस्तावेज़ीकरण अनुवाद के प्रक्रिया में है, कृपया धैर्य रखें।

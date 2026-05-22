@@ -102,6 +102,27 @@ conda install mpi4py
 pip install -e .
 ```
 
+#### Optional dependencies
+
+The base install above is enough for full / LoRA / LISA finetuning and HF-backend inference. Features below are gated behind extras — install only what you need:
+
+| Extra           | Enables                                       | Install                                |
+| --------------- | --------------------------------------------- | -------------------------------------- |
+| `vllm`          | vLLM-backed inference and iterative DPO       | `pip install -e ".[vllm]"`             |
+| `sglang`        | SGLang-backed inference and iterative DPO     | `pip install -e ".[sglang]"`           |
+| `trl`           | DPO / iterative DPO training                  | `pip install -e ".[trl]"`              |
+| `deepspeed`     | DeepSpeed integration                         | `pip install -e ".[deepspeed]"`        |
+| `flash_attn`    | Flash Attention 2                             | `pip install -e ".[flash_attn]"`       |
+| `ray`           | Distributed reward-model inference            | `pip install -e ".[ray]"`              |
+| `multimodal`    | Multimodal models                             | `pip install -e ".[multimodal]"`       |
+| `gradio`        | Gradio chatbot UI                             | `pip install -e ".[gradio]"`           |
+| `flask`         | Flask deployment                              | `pip install -e ".[flask]"`            |
+
+Multiple extras can be combined: `pip install -e ".[vllm,trl]"` for iterative DPO with vLLM, or `".[sglang,trl]"` for the SGLang variant.
+
+> [!IMPORTANT]
+> vLLM and SGLang depend on incompatible CUDA / PyTorch versions and should not be installed into the same environment. If you need both, create separate conda envs (e.g. `lmflow-vllm` and `lmflow-sglang`).
+
 <details><summary> Looking for a previous version? </summary>
 
 ```bash

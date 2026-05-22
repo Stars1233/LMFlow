@@ -47,17 +47,37 @@ Una caja de herramientas extensible, conveniente y eficiente para ajustar modelo
 
 ## Quick Start
 ### Setup
-Nuestro repositorio ha sido probado en Linux (Ubuntu 20.04). Las otras plataformas de sistemas operativos (macOS, Windows) aún no han sido completamente probadas, por lo que pueden surgir algunos errores inesperados. Se recomienda probar primero en Linux/Windows WSL o utilizar Google Colab para experimentar.
+Nuestro repositorio ha sido probado en Linux (Ubuntu 20.04). Las otras plataformas (macOS, Windows) aún no han sido completamente probadas, por lo que pueden surgir errores inesperados. Se recomienda probar primero en Linux / Windows WSL, o utilizar Google Colab.
 
-Para CUDA 10.3-11.7, se recomienda utilizar `v0.0.5` o versiones anteriores. Para CUDA superior a 11.7, por favor, utilice nuestra rama estable `>= v0.0.6` para una mejor experiencia.
 ```bash
-git clone https://github.com/OptimalScale/LMFlow.git
+git clone -b v1.0.0 https://github.com/OptimalScale/LMFlow.git
 cd LMFlow
 conda create -n lmflow python=3.9 -y
 conda activate lmflow
 conda install mpi4py
-bash install.sh
+pip install -e .
 ```
+
+#### Dependencias opcionales
+
+La instalación base es suficiente para fine-tuning completo / LoRA / LISA y para inferencia con el backend de HuggingFace. Las siguientes funciones se habilitan mediante *extras* — instale solo lo que necesite:
+
+| Extra        | Habilita                                          | Comando                            |
+| ------------ | ------------------------------------------------- | ---------------------------------- |
+| `vllm`       | Inferencia con vLLM e iterative DPO               | `pip install -e ".[vllm]"`         |
+| `sglang`     | Inferencia con SGLang e iterative DPO             | `pip install -e ".[sglang]"`       |
+| `trl`        | Entrenamiento DPO / iterative DPO                 | `pip install -e ".[trl]"`          |
+| `deepspeed`  | Integración con DeepSpeed                         | `pip install -e ".[deepspeed]"`    |
+| `flash_attn` | Flash Attention 2                                 | `pip install -e ".[flash_attn]"`   |
+| `ray`        | Inferencia distribuida del modelo de recompensa   | `pip install -e ".[ray]"`          |
+| `multimodal` | Modelos multimodales                              | `pip install -e ".[multimodal]"`   |
+| `gradio`     | Interfaz de chatbot con Gradio                    | `pip install -e ".[gradio]"`       |
+| `flask`      | Despliegue con Flask                              | `pip install -e ".[flask]"`        |
+
+Los extras se pueden combinar: `pip install -e ".[vllm,trl]"` para iterative DPO con vLLM, o `".[sglang,trl]"` para la variante con SGLang.
+
+> [!IMPORTANT]
+> vLLM y SGLang dependen de versiones incompatibles de CUDA / PyTorch y no deberían instalarse en el mismo entorno. Si necesita ambos, cree entornos conda separados (por ejemplo, `lmflow-vllm` y `lmflow-sglang`).
 
 ### Prepare Dataset
 Por favor, consulta nuestra [documentación oficial (en inglés)](https://optimalscale.github.io/LMFlow/examples/DATASETS.html). La documentación oficial se encuentra actualmente en proceso de traducción, te pedimos paciencia mientras tanto.

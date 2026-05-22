@@ -18,12 +18,15 @@ if os.path.exists(req_path):
 extra_require = {
     "multimodal": ["Pillow"],
     "vllm": ["vllm>=0.8.0"],
-    "sglang": ["sglang"],
+    # pybase64 is imported eagerly by sglang.utils but not declared as a hard
+    # dep upstream; without it `import sglang` raises ModuleNotFoundError.
+    "sglang": ["sglang", "pybase64"],
     "ray": ["ray>=2.22.0"],
     "gradio": ["gradio"],
     "flask": ["flask", "flask_cors"],
     "flash_attn": ["flash-attn>=2.0.2"],
-    "trl": ["trl==0.8.0"],
+    # rich is lazy-imported by trl's DPOTrainer; not declared in trl 0.11.x.
+    "trl": ["trl>=0.11,<0.12", "rich"],
     "deepspeed": ["deepspeed>=0.14.4"],
     "develop": ["pytest"],
     "dev": ["ruff", "pytest", "pre-commit"],
