@@ -14,8 +14,8 @@ Typical usage example:
 
 import json
 import os
+import tempfile
 import unittest
-from pathlib import Path
 
 from lmflow.args import DatasetArguments
 from lmflow.datasets.dataset import Dataset
@@ -23,15 +23,24 @@ from lmflow.datasets.dataset import Dataset
 
 class DatasetTest(unittest.TestCase):
     def test_init(self):
-        dataset_dir = "data/example_dataset/train"
-        data_args = DatasetArguments(dataset_path=dataset_dir)
-        dataset = Dataset(data_args, backend="huggingface")
-        hf_dataset = dataset.get_backend_dataset()
+        json_obj = {
+            "type": "text2text",
+            "instances": [
+                {"input": "INPUT 1", "output": "OUTPUT 1"},
+                {"input": "INPUT 2", "output": "OUTPUT 2"},
+            ],
+        }
+        with tempfile.TemporaryDirectory() as dataset_dir:
+            with open(os.path.join(dataset_dir, "train.json"), "w", encoding="utf-8") as fout:
+                json.dump(json_obj, fout)
 
-        with open(os.path.join(Path(dataset_dir), "train_50.json")) as fin:
-            json_obj = json.load(fin)
-            for i in range(len(hf_dataset)):
-                self.assertEqual(json_obj["instances"][i], hf_dataset[i])
+            data_args = DatasetArguments(dataset_path=dataset_dir)
+            dataset = Dataset(data_args, backend="huggingface")
+            hf_dataset = dataset.get_backend_dataset()
+
+            self.assertEqual(len(hf_dataset), len(json_obj["instances"]))
+            for expected, actual in zip(json_obj["instances"], hf_dataset):
+                self.assertEqual(expected, actual)
 
     def test_create_from_dict(self):
         data_dict = {

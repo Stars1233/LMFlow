@@ -19,6 +19,8 @@ import json
 import os
 from pathlib import Path
 
+import pytest
+
 from lmflow.args import DatasetArguments, ModelArguments
 from lmflow.datasets.dataset import Dataset
 from lmflow.models.hf_decoder_model import HFDecoderModel
@@ -27,6 +29,8 @@ from lmflow.utils.constants import (
     TEXT2TEXT_DATASET_DESCRIPTION,
 )
 from lmflow.utils.conversation_template import PRESET_TEMPLATES
+
+pytestmark = pytest.mark.online
 
 
 SAMPLE_TEXT = "Defintion: In this task, we ask you to write an answer to a question that involves events that may be stationary (not changing over time) or transient (changing over time). For example, the sentence \"he was born in the U.S.\" contains a stationary event since it will last forever; however, \"he is hungry\" contains a transient event since it will remain true for a short period of time. Note that a lot of the questions could have more than one correct answer. We only need a single most-likely answer. Please try to keep your \"answer\" as simple as possible. Concise and simple \"answer\" is preferred over those complex and verbose ones. \\n Input: Sentence: It's hail crackled across the comm, and Tara spun to retake her seat at the helm. \nQuestion: Will the hail storm ever end? \\n Output: NA \\n\\n"

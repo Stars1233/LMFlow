@@ -51,6 +51,19 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["F841"]
+"tests/pipeline/test_sglang_infernecer.py" = ["E402"]
+"tests/pipeline/test_vllm_inferencer.py" = ["E402"]
 "src/lmflow/utils/conversation_template/*.py" = ["E501"]
 "src/lmflow/utils/llava_conversation_lib.py" = ["E501"]
 "src/lmflow/utils/constants.py" = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "gpu: requires a GPU",
+    "slow: takes substantially longer than the unit-test suite",
+    "online: requires network access or a remote model/dataset",
+    "optional_backend: requires an optional inference backend",
+    "lmflow_core: tests for core LMFlow functionality",
+    "dothis: mark for developers to run explicitly",
+]

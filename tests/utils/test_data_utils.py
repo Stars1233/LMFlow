@@ -1,4 +1,7 @@
 #!/bin/env/python3
+import json
+import os
+import tempfile
 import unittest
 
 from lmflow.utils.data_utils import answer_extraction, batchlize, load_data
@@ -54,10 +57,22 @@ qa_answer = ["yes"] * 4 + ["no"] * 4 + ["maybe"] * 4
 
 
 class DataUtilsTest(unittest.TestCase):
-    def test_load_data(self):
-        file_name = "data/example_dataset/test/test_13.json"
+    def load_fixture(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            file_name = os.path.join(temp_dir, "test.json")
+            fixture = {
+                "type": "text2text",
+                "instances": [
+                    {"input": input_text, "output": output_text}
+                    for input_text, output_text in zip(groundtruth_inputs, groundtruth_outputs)
+                ],
+            }
+            with open(file_name, "w", encoding="utf-8") as fout:
+                json.dump(fixture, fout)
+            return load_data(file_name=file_name)
 
-        inputs, outputs, datasize = load_data(file_name=file_name)
+    def test_load_data(self):
+        inputs, outputs, datasize = self.load_fixture()
         # Test for inputs
         for i in range(0, len(inputs)):
             self.assertEqual(inputs[i], groundtruth_inputs[i])
@@ -68,8 +83,7 @@ class DataUtilsTest(unittest.TestCase):
         self.assertEqual(datasize, 13)
 
     def test_batchlize(self):
-        file_name = "data/example_dataset/test/test_13.json"
-        inputs, outputs, datasize = load_data(file_name=file_name)
+        inputs, outputs, _ = self.load_fixture()
         dataset = []
         for idx in range(len(outputs)):
             dataset.append({"input": inputs[idx], "output": outputs[idx], "input_idx": idx})

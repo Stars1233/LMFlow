@@ -5,6 +5,7 @@ import copy
 import logging
 import os
 import subprocess
+import sys
 
 import numpy as np
 import torch
@@ -626,7 +627,7 @@ class ToolInferencer(Inferencer):
 
     def code_exec(self, code):
         # Execute the code
-        result = subprocess.run(["python", "-c", code], capture_output=True, text=True)
+        result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True)
 
         # Print the result
         if result.returncode == 0:
