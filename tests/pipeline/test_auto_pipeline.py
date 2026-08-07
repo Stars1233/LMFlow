@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 
 from lmflow.args import DatasetArguments, EvaluatorArguments, FinetunerArguments, InferencerArguments, ModelArguments
 from lmflow.pipeline.auto_pipeline import AutoPipeline
@@ -14,7 +15,8 @@ class AutoPipelineTest(unittest.TestCase):
         model_args = ModelArguments(model_name_or_path=MODEL_NAME)
         dataset_args = DatasetArguments()
         evaluator_args = EvaluatorArguments()
-        pipeline = AutoPipeline.get_pipeline("evaluator", model_args, dataset_args, evaluator_args)
+        with patch.object(Evaluator, "__init__", return_value=None):
+            pipeline = AutoPipeline.get_pipeline("evaluator", model_args, dataset_args, evaluator_args)
 
         self.assertTrue(isinstance(pipeline, Evaluator))
 
@@ -22,7 +24,8 @@ class AutoPipelineTest(unittest.TestCase):
         model_args = ModelArguments(model_name_or_path=MODEL_NAME)
         dataset_args = DatasetArguments()
         finetuner_args = FinetunerArguments(output_dir="~/tmp")
-        pipeline = AutoPipeline.get_pipeline("finetuner", model_args, dataset_args, finetuner_args)
+        with patch.object(Finetuner, "__init__", return_value=None):
+            pipeline = AutoPipeline.get_pipeline("finetuner", model_args, dataset_args, finetuner_args)
 
         self.assertTrue(isinstance(pipeline, Finetuner))
 
@@ -30,7 +33,8 @@ class AutoPipelineTest(unittest.TestCase):
         model_args = ModelArguments(model_name_or_path=MODEL_NAME)
         dataset_args = DatasetArguments()
         inferencer_args = InferencerArguments()
-        pipeline = AutoPipeline.get_pipeline("inferencer", model_args, dataset_args, inferencer_args)
+        with patch.object(Inferencer, "__init__", return_value=None):
+            pipeline = AutoPipeline.get_pipeline("inferencer", model_args, dataset_args, inferencer_args)
 
         self.assertTrue(isinstance(pipeline, Inferencer))
 

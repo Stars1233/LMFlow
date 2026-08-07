@@ -1,6 +1,5 @@
 import unittest
 
-from lmflow.args import DatasetArguments, InferencerArguments, ModelArguments
 from lmflow.pipeline.inferencer import ToolInferencer
 
 CODE_1 = 'print("hello world")'
@@ -13,11 +12,10 @@ NameError: name 'a' is not defined
 
 
 class ToolInferencerTest(unittest.TestCase):
-    def set_up(self):
-        model_args = ModelArguments(model_name_or_path="codellama/CodeLlama-7b-instruct-hf")
-        inferencer_args = InferencerArguments()
-        data_args = DatasetArguments()
-        self.toolinf = ToolInferencer(model_args, data_args, inferencer_args)
+    def setUp(self):
+        # code_exec does not use model state; bypass model initialization so this
+        # remains a fast, offline unit test.
+        self.toolinf = object.__new__(ToolInferencer)
 
     def test_code_exec_1(self, code=CODE_1, expected_output=RES_1):
         toolinf_res = self.toolinf.code_exec(code)

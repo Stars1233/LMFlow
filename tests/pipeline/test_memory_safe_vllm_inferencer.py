@@ -4,6 +4,8 @@ import logging
 
 import pytest
 
+pytestmark = [pytest.mark.optional_backend, pytest.mark.gpu, pytest.mark.online]
+
 vllm = pytest.importorskip("vllm")
 
 from lmflow.args import DatasetArguments, InferencerArguments, ModelArguments

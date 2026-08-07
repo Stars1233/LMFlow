@@ -137,6 +137,7 @@ class PeftMethod(Enum):
 
 
 class TestDtype(Enum):
+    __test__ = False
     FP32 = "fp32"
     BF16 = "bf16"
 

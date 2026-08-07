@@ -1,8 +1,11 @@
 import unittest
 
+import pytest
 from transformers import AutoTokenizer
 
 from lmflow.utils.conversation_template import PRESET_TEMPLATES
+
+pytestmark = pytest.mark.online
 
 CONVERSATION_SINGLETURN = {
     "system": "sysinfo",

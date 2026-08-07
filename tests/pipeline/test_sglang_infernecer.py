@@ -1,10 +1,10 @@
 import numpy as np
 import pytest
 
-pytest.importorskip("sglang")
+pytestmark = [pytest.mark.optional_backend, pytest.mark.gpu, pytest.mark.online]
 
-from sglang.srt.entrypoints.engine import Engine
-from sglang.srt.server_args import ServerArgs
+Engine = pytest.importorskip("sglang.srt.entrypoints.engine", exc_type=ImportError).Engine
+ServerArgs = pytest.importorskip("sglang.srt.server_args", exc_type=ImportError).ServerArgs
 
 from lmflow.args import InferencerArguments, ModelArguments
 from lmflow.datasets.dataset import Dataset

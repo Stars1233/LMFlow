@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # Copyright 2024 Statistics and Machine Learning Research Group. All rights reserved.
-import json
 import logging
 import os
-from typing import Optional, Union
+from typing import Optional
 
 from transformers import AutoTokenizer
 
