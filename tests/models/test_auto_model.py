@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 
 from lmflow.args import ModelArguments
 from lmflow.models.auto_model import AutoModel
@@ -12,8 +13,11 @@ MODEL_NAME = "gpt2"
 class AutoModelTest(unittest.TestCase):
     def test_get_decoder_model(self):
         model_args = ModelArguments(arch_type="decoder_only", model_name_or_path=MODEL_NAME)
-        model = AutoModel.get_model(model_args)
-        self.assertTrue(isinstance(model, HFDecoderModel))
+        with patch.object(HFDecoderModel, "__init__", return_value=None) as model_init:
+            model = AutoModel.get_model(model_args)
+
+        self.assertIsInstance(model, HFDecoderModel)
+        model_init.assert_called_once_with(model_args)
 
     # This unit test is commented out since the encoder decoder model has not been fully implemented
     """
